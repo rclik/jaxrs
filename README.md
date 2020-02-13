@@ -80,5 +80,62 @@ Genel olarak iki cozumu var;
     - web.xml kullanarak:
     - annotation kullanarak:
     java web deployment descriptor JavaEE standard larina gore belirlenir. 2.5 den once sinde web.xml java web uygulamalarinda olmalidir.
-    sonraki versiyonlarinda ise java servlet container i ilgili annotation lari search ederek onlari context ine ekler.
+    sonraki versiyonlarinda ise java servlet container i ilgili annotation lari search ederek onlari context ine ekler. yani web.xml e gerek kalmaz.
     
+ Ilk olarak web deployment descriptor araciligiyla root resource u eklemeyi yapalim:
+    - ilk olarak javax.ws.rs.core.Application class ini extend eden bir class yazalim. Bu class bizim application imizi temsil edecek ve servlet container
+    ayaga kalkarken bunrada insert ettigimiz resource lari veya interceptor lari ayaga kaldiracak.
+    bu class da singletons dedigimiz application nin resource larini tutacak bir datastructure objesi olur, resource larimizi ona register ederiz. 
+    Sonrada da getSingletons() method unu override ederek, return olarak de resource data object ini doneriz.
+    
+    public class RestMessageApplication extends Application {
+        private Set<Object> singletons = new HashSet<Object>();
+    
+        public RestMessageApplication(){
+            singletons.add(new RestMessageController());
+        }
+    
+        @Override
+        public Set<Object> getSingletons() {
+            return singletons;
+        }
+    }
+    
+Root resource lar singleton veya request scope olabililer. 
+    singleton yapmak icin, getSingletons method u override edilmelidir.
+    per request yapmak icin getClasses() method u override edilmelidir.
+
+
+bundan sonra ise bu class i web container i gostermemiz gerekiyor. o isi de web.xml de yapiyoruz.
+web.xml de gostermenin de iki yolu var:
+    - servlet description i ile
+    - filter description i ile.
+ikisindeki mantik da aynidir. birinde servlet ayaga kalkarken application register edilir. digerinde ise filter ayaga kalkarken application register edilir.
+
+Servlet Ayaga Kalkarken:
+    - Ayaga kalkan servlet RestEasy nin servleti org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher 
+    - Bu servlet definition ini web.xml de veriyoruz ve init-param olarak da application i veriyoruz:
+    
+    <web-app xmlns="http://java.sun.com/xml/ns/javaee"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
+              http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+             version="2.5">
+        <display-name>injavawetrust.resteasy</display-name>
+        <servlet>
+            <servlet-name>HttpServletDispatcher</servlet-name>
+            <servlet-class>
+                org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher
+            </servlet-class>
+            <init-param>
+                <param-name>javax.ws.rs.core.Application</param-name>
+                <param-value>com.rcelik.jaxrs.restmessage.application.RegisterApplication</param-value>
+            </init-param>
+        </servlet>
+        <servlet-mapping>
+            <servlet-name>HttpServletDispatcher</servlet-name>
+            <url-pattern>/*</url-pattern>
+        </servlet-mapping>
+    </web-app>
+    
+servlet mapping ini de yapmayi unutmamak lazim.
