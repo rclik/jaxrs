@@ -4,8 +4,6 @@
 	      http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
          version="2.5">
 
-    <display-name>injavawetrust.resteasy</display-name>
-
     <servlet>
         <servlet-name>HttpServletDispatcher</servlet-name>
         <servlet-class>
@@ -19,6 +17,11 @@
 
     <servlet-mapping>
         <servlet-name>HttpServletDispatcher</servlet-name>
-        <url-pattern>/*</url-pattern>
+        <url-pattern>/rest/*</url-pattern>
     </servlet-mapping>
+
+    <context-param>
+        <param-name>resteasy.servlet.mapping.prefix</param-name>
+        <param-value>/rest</param-value>
+    </context-param>
 </web-app>

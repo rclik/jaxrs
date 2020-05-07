@@ -139,3 +139,86 @@ Servlet Ayaga Kalkarken:
     </web-app>
     
 servlet mapping ini de yapmayi unutmamak lazim.
+
+Application root context ini ise Intellij den verebiliyorsun. Default olarak verebilemek icin kullandigin application server a gore kurallar var. onlara gore verebiliyorsun.
+
+intellij den verdigimiz application context i myapp olsun. o zaman bizim root resource icin verecegimiz url su sekilde olur:
+    localhost:8080/myapp/messages/message
+    
+simdi ise url mapping yaptigmiz yere /* den farkli bir deger verelim: mesela /rest/* 
+bunun calistirilmasi icin context-param degerinin de verilmesi gerekiyor:
+
+    <servlet-mapping>
+        <servlet-name>HttpServletDispatcher</servlet-name>
+        <url-pattern>/rest/*</url-pattern>
+    </servlet-mapping>
+
+    <context-param>
+        <param-name>resteasy.servlet.mapping.prefix</param-name>
+        <param-value>/rest</param-value>
+    </context-param>
+   
+Burada oldugu gibi. 
+
+
+Filter ile yapilabilir. tam olarak ayni mantik ama bu kere RestEasy nin servlet i yerine filter i ayaga kalkarken application i bind edecegiz.
+
+     <filter>
+        <filter-name>FilterDispatcher</filter-name>
+        <filter-class>
+            org.jboss.resteasy.plugins.server.servlet.FilterDispatcher
+        </filter-class>
+        <init-param>
+            <param-name>javax.ws.rs.Application</param-name>
+            <param-value>service.RegisterApplication</param-value>
+        </init-param>
+    </filter>
+     <filter-mapping>
+        <filter-name>FilterDispatcher</filter-name>
+        <url-pattern>/restfilter/*</url-pattern>
+    </filter-mapping>
+    <context-param>
+        <param-name>resteasy.servlet.mapping.prefix</param-name>
+        <param-value>/restfilter</param-value>
+    </context-param>
+    
+tamamen ayni sadece filter ve filter in ismi: org.jboss.resteasy.plugins.server.servlet.FilterDispatcher
+
+Bu yaptiklarimizi Servlet 3 api ile yapalim bir de, yani xml den bagimsiz olarak. Onun icin ise yeni projeye gecebiliriz.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
